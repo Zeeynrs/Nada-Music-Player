@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Nada
+GenericName=Music Player
+Comment=Pemutar Spotify ringan untuk desktop
+Exec=@BIN@
+Icon=nada
+Terminal=false
+Categories=Audio;Music;Player;AudioVideo;
+Keywords=spotify;music;musik;lagu;
+StartupWMClass=nada
