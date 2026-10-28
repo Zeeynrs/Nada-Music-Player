@@ -94,6 +94,80 @@ Item {
                     tip: "Kembali (Alt+←)"
                     onClicked: stack.pop()
                 }
+
+                Rectangle {
+                    id: updateBanner
+                    visible: opacity > 0
+                    opacity: updater.bannerVisible ? 1 : 0
+                    anchors.top: parent.top
+                    anchors.topMargin: updater.bannerVisible ? 14 : -70
+                    anchors.right: parent.right
+                    anchors.rightMargin: 18
+                    width: Math.min(480, parent.width - 90)
+                    height: 58
+                    radius: 18
+                    color: Theme.surface3
+                    border.width: 1
+                    border.color: Theme.alpha(Theme.accent, 0.35)
+                    z: 20
+
+                    Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+                    Behavior on anchors.topMargin { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 14
+                        anchors.rightMargin: 10
+                        spacing: 10
+
+                        Rectangle {
+                            Layout.preferredWidth: 34
+                            Layout.preferredHeight: 34
+                            radius: 17
+                            color: Theme.alpha(Theme.accent, 0.16)
+                            Icon {
+                                anchors.centerIn: parent
+                                glyph: "download"
+                                size: 18
+                                color: Theme.accent
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 1
+                            Label {
+                                Layout.fillWidth: true
+                                text: "Update GitHub tersedia (" + updater.commitsBehind + " commit)"
+                                font.pixelSize: 13
+                                font.weight: Font.Bold
+                                color: Theme.text
+                                elide: Text.ElideRight
+                            }
+                            Label {
+                                Layout.fillWidth: true
+                                text: updater.remoteMessage
+                                font.pixelSize: 12
+                                color: Theme.dim
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        NButton {
+                            text: updater.updating ? "Memperbarui…" : "Perbarui"
+                            primary: true
+                            enabled: !updater.updating
+                            onClicked: updater.applyUpdate()
+                        }
+
+                        IconButton {
+                            iconName: "close"
+                            size: 16
+                            tip: "Sembunyikan"
+                            onClicked: updater.dismissBanner()
+                        }
+                    }
+                }
             }
         }
 

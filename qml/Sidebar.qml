@@ -105,12 +105,65 @@ Item {
             }
         }
 
+        AbstractButton {
+            id: updateCard
+            visible: updater.updateAvailable
+            Layout.fillWidth: true
+            Layout.topMargin: 4
+            implicitHeight: 54
+            hoverEnabled: true
+            focusPolicy: Qt.NoFocus
+            enabled: !updater.updating
+            onClicked: updater.applyUpdate()
+
+            background: Rectangle {
+                radius: 14
+                color: updateCard.hovered ? Theme.alpha(Theme.accent, 0.22) : Theme.alpha(Theme.accent, 0.14)
+                border.width: 1
+                border.color: Theme.alpha(Theme.accent, 0.35)
+                Behavior on color { ColorAnimation { duration: 140 } }
+            }
+
+            contentItem: RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
+                spacing: 10
+
+                Icon {
+                    glyph: "download"
+                    size: 18
+                    color: Theme.accent
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 1
+                    Label {
+                        Layout.fillWidth: true
+                        text: updater.updating ? "Memperbarui Nada…" : "Update tersedia (" + updater.commitsBehind + ")"
+                        font.pixelSize: 13
+                        font.weight: Font.Bold
+                        color: Theme.accent
+                        elide: Text.ElideRight
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        text: updater.remoteMessage
+                        font.pixelSize: 11
+                        color: Theme.dim
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+        }
+
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.alpha(Theme.text, 0.06); Layout.topMargin: 4 }
 
         RowLayout {
             Layout.fillWidth: true
             Layout.topMargin: 4
-            spacing: 10
+            spacing: 8
             Cover {
                 Layout.leftMargin: 8
                 Layout.preferredWidth: 32
@@ -125,6 +178,15 @@ Item {
                 elide: Text.ElideRight
                 font.pixelSize: 14
                 font.weight: Font.Medium
+            }
+            IconButton {
+                iconName: updater.updateAvailable ? "download" : "refresh"
+                tint: updater.updateAvailable ? Theme.accent : Theme.dim
+                enabled: !updater.checking && !updater.updating
+                tip: updater.updateAvailable
+                     ? "Perbarui ke commit terbaru (" + updater.remoteHash + ")"
+                     : "Periksa pembaruan GitHub (" + updater.currentHash + ")"
+                onClicked: updater.updateAvailable ? updater.applyUpdate() : updater.check(false)
             }
             IconButton {
                 iconName: "settings"

@@ -16,6 +16,7 @@ from .library import Library
 from .lyrics import Lyrics
 from .player import Player
 from .session import Session
+from .updater import Updater
 from .visualizer import Visualizer
 from .worker import Async
 
@@ -46,7 +47,17 @@ def main():
     library = Library(api, worker)
     lyrics = Lyrics(player, worker)
     visualizer = Visualizer()
+    updater = Updater(worker)
     librespot.problem.connect(session.toast)
+    updater.toast.connect(session.toast)
+    restarting = False
+
+    def request_restart():
+        nonlocal restarting
+        restarting = True
+        app.quit()
+
+    updater.restartRequested.connect(request_restart)
 
     def on_logged_in():
         if settings["start_librespot"]:
@@ -61,7 +72,8 @@ def main():
     engine.warnings.connect(lambda ws: [print("QML:", w.toString(), file=sys.stderr) for w in ws])
     ctx = engine.rootContext()
     for name, obj in (("session", session), ("player", player), ("library", library),
-                      ("lyrics", lyrics), ("visualizer", visualizer), ("librespot", librespot)):
+                      ("lyrics", lyrics), ("visualizer", visualizer), ("librespot", librespot),
+                      ("updater", updater)):
         ctx.setContextProperty(name, obj)
     engine.load(str(ROOT / "qml" / "Main.qml"))
     if not engine.rootObjects():
@@ -87,6 +99,8 @@ def main():
     app.aboutToQuit.connect(shutdown)
     code = app.exec()
     del window, engine  # tear down QML before the Python objects it binds to
+    if restarting:
+        os.execv(sys.executable, [sys.executable, "-I", str(ROOT / "run.py"), *sys.argv[1:]])
     sys.exit(code)
 
 

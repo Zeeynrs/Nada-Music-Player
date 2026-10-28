@@ -75,6 +75,61 @@ Item {
             }
 
             Section {
+                title: "Pembaruan Aplikasi (GitHub)"
+                SettingRow {
+                    label: "Status"
+                    hint: "Commit saat ini: " + updater.currentHash + (updater.currentMessage ? " — " + updater.currentMessage : "")
+                          + " • Diperiksa: " + updater.lastChecked
+                    Rectangle {
+                        implicitWidth: 10; implicitHeight: 10; radius: 5
+                        color: updater.updating || updater.checking ? "#ffd36e"
+                             : updater.updateAvailable ? Theme.accent : "#7ee08f"
+                    }
+                    Label {
+                        text: updater.statusText
+                        color: updater.updateAvailable ? Theme.accent : Theme.dim
+                        font.pixelSize: 14
+                        font.weight: updater.updateAvailable ? Font.DemiBold : Font.Normal
+                    }
+                }
+                Rectangle {
+                    visible: updater.updateAvailable && updater.changelog !== ""
+                    Layout.fillWidth: true
+                    implicitHeight: changelogLabel.implicitHeight + 24
+                    radius: 12
+                    color: Theme.bg
+                    border.width: 1
+                    border.color: Theme.alpha(Theme.accent, 0.25)
+                    Label {
+                        id: changelogLabel
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        text: updater.changelog
+                        font.family: Theme.mono
+                        font.pixelSize: 12
+                        color: Theme.text
+                        wrapMode: Text.WordWrap
+                    }
+                }
+                RowLayout {
+                    spacing: 10
+                    NButton {
+                        text: updater.checking ? "Memeriksa…" : "Periksa Pembaruan"
+                        iconName: "refresh"
+                        enabled: !updater.checking && !updater.updating
+                        onClicked: updater.check(false)
+                    }
+                    NButton {
+                        text: updater.updating ? "Memperbarui…" : (updater.updateAvailable ? "Perbarui & Mulai Ulang" : "Sinkronkan Ulang")
+                        iconName: "download"
+                        primary: updater.updateAvailable
+                        enabled: !updater.updating && !updater.checking
+                        onClicked: updater.applyUpdate()
+                    }
+                }
+            }
+
+            Section {
                 title: "Perangkat lokal (librespot)"
                 SettingRow {
                     label: "Status"
