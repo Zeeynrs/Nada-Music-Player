@@ -312,20 +312,19 @@ Item {
     // MAIN CONTENT: Left (Scalloped Cover & Controls) + Right (Panel)
     // ========================================================================
     RowLayout {
+        id: mainRow
         anchors.top: topBar.bottom
         anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.leftMargin: 56
-        anchors.rightMargin: 56
+        anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 4
         anchors.bottomMargin: 36
-        spacing: 56
+        width: Math.min(parent.width - 96, im.wide && im.showPanel ? 1100 : 680)
+        spacing: im.wide && im.showPanel ? Math.min(72, Math.max(40, parent.width * 0.04)) : 32
 
         // ---- LEFT COLUMN: Scalloped Cover + Centered Info & Controls ----
         ColumnLayout {
             visible: im.wide || !im.showPanel
-            Layout.preferredWidth: im.wide && im.showPanel ? Math.min(460, im.width * 0.44) : -1
+            Layout.preferredWidth: im.wide && im.showPanel ? Math.min(420, mainRow.width * 0.40) : -1
             Layout.fillWidth: !im.wide || !im.showPanel
             Layout.fillHeight: true
             spacing: 12

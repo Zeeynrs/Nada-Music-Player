@@ -32,9 +32,9 @@ Item {
             // Scalloped translucent pill highlight behind the active lyric line
             Canvas {
                 id: pillBg
-                x: -6
+                x: 0
                 y: 0
-                width: Math.min(row.width + 12, Math.max(120, lineLabel.contentWidth + 44))
+                width: Math.min(row.width, Math.max(120, lineLabel.contentWidth + 44))
                 height: row.height
                 opacity: row.isCurrent ? 1.0 : 0.0
                 visible: opacity > 0.01
@@ -107,9 +107,9 @@ Item {
 
             Label {
                 id: lineLabel
-                x: row.isCurrent ? 14 : 4
+                x: row.isCurrent ? 20 : 10
                 anchors.verticalCenter: parent.verticalCenter
-                width: row.width - 28
+                width: row.width - 34
                 text: modelData.text || "♪"
                 wrapMode: Text.WordWrap
                 font.pixelSize: lyrics.synced ? 26 : 22
