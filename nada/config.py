@@ -19,6 +19,7 @@ DEFAULTS = {
     "device_name": "Nada",
     "bitrate": 320,
     "visualizer": True,
+    "visualizer_style": "bars",
     "start_librespot": True,
     "normalize": False,
     # librespot softvol range in dB: 60 is librespot's default and very quiet mid-slider

@@ -2,9 +2,11 @@ AppShell 1.0 AppShell.qml
 ArtistPage 1.0 ArtistPage.qml
 CardGrid 1.0 CardGrid.qml
 Card 1.0 Card.qml
+CircularSpectrum 1.0 CircularSpectrum.qml
 CollectionPage 1.0 CollectionPage.qml
 Cover 1.0 Cover.qml
 DevicesPopup 1.0 DevicesPopup.qml
+EqualizerView 1.0 EqualizerView.qml
 HomePage 1.0 HomePage.qml
 IconButton 1.0 IconButton.qml
 Icon 1.0 Icon.qml

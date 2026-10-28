@@ -6,13 +6,14 @@ from PySide6.QtCore import Property, QObject, QProcess, Signal, Slot
 
 from .config import CACHE_DIR
 
-BARS = 48
+BARS = 64
 CAVA_CONFIG = f"""
 [general]
 bars = {BARS}
-framerate = 45
+framerate = 60
 autosens = 1
-lower_cutoff_freq = 40
+lower_cutoff_freq = 35
+higher_cutoff_freq = 14000
 
 [input]
 method = pipewire
@@ -28,7 +29,7 @@ frame_delimiter = 10
 channels = mono
 
 [smoothing]
-noise_reduction = 70
+noise_reduction = 62
 """
 
 

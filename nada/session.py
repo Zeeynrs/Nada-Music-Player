@@ -94,6 +94,7 @@ class Session(QObject):
     deviceName = Property(str, *_setting("device_name"), notify=changed)
     bitrate = Property(int, *_setting("bitrate"), notify=changed)
     visualizerEnabled = Property(bool, *_setting("visualizer"), notify=changed)
+    visualizerStyle = Property(str, *_setting("visualizer_style"), notify=changed)
     normalize = Property(bool, *_setting("normalize"), notify=changed)
     volumeRange = Property(int, *_setting("volume_range"), notify=changed)
     del _setting

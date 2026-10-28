@@ -186,10 +186,9 @@ Item {
                 title: "Tampilan"
                 SettingRow {
                     label: "Visualizer"
-                    hint: visualizer.available ? "Batang spektrum di tampilan penuh (memakai cava, hanya aktif saat terlihat)."
-                                               : "Butuh cava: sudo pacman -S cava"
+                    hint: visualizer.available ? "Spektrum lingkaran di sekeliling cover pada tampilan penuh (memakai cava)."
+                                               : "Spektrum lingkaran di tampilan penuh (pasang cava untuk deteksi audio langsung)."
                     Switch {
-                        enabled: visualizer.available
                         checked: session.visualizerEnabled
                         onToggled: session.visualizerEnabled = checked
                     }
