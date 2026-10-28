@@ -1,13 +1,18 @@
-"""Audio spectrum bars from cava (reads the PipeWire output monitor)."""
+"""Audio spectrum bars from cava (reads the PipeWire or PulseAudio output monitor)."""
 
+import os
 import shutil
+from pathlib import Path
 
 from PySide6.QtCore import Property, QObject, QProcess, Signal, Slot
 
 from .config import CACHE_DIR
 
 BARS = 64
-CAVA_CONFIG = f"""
+
+
+def _cava_config(method: str) -> str:
+    return f"""
 [general]
 bars = {BARS}
 framerate = 60
@@ -16,7 +21,7 @@ lower_cutoff_freq = 35
 higher_cutoff_freq = 14000
 
 [input]
-method = pipewire
+method = {method}
 source = auto
 
 [output]
@@ -33,6 +38,13 @@ noise_reduction = 62
 """
 
 
+def _default_input_method() -> str:
+    runtime = os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
+    if Path(runtime, "pipewire-0").exists():
+        return "pipewire"
+    return "pulse"
+
+
 class Visualizer(QObject):
     barsChanged = Signal()
     activeChanged = Signal()
@@ -42,8 +54,11 @@ class Visualizer(QObject):
         self._bars = [0.0] * BARS
         self._active = False
         self._buf = b""
+        self._method = _default_input_method()
+        self._tried_fallback = False
         self.proc = QProcess(self)
         self.proc.readyReadStandardOutput.connect(self._read)
+        self.proc.finished.connect(self._on_finished)
 
     @Property(bool, constant=True)
     def available(self):
@@ -60,6 +75,23 @@ class Visualizer(QObject):
     def _get_active(self):
         return self._active
 
+    def _launch_cava(self):
+        exe = shutil.which("cava")
+        if not exe:
+            return
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        conf = CACHE_DIR / "cava.conf"
+        conf.write_text(_cava_config(self._method))
+        self._buf = b""
+        self.proc.start(exe, ["-p", str(conf)])
+
+    def _on_finished(self, exit_code, _exit_status):
+        # If cava on another distro was built without PipeWire support, retry once with PulseAudio
+        if self._active and exit_code != 0 and not self._tried_fallback and self._method == "pipewire":
+            self._tried_fallback = True
+            self._method = "pulse"
+            self._launch_cava()
+
     @Slot(bool)
     def _set_active(self, on):
         on = bool(on) and self.available
@@ -67,10 +99,7 @@ class Visualizer(QObject):
             return
         self._active = on
         if on:
-            CACHE_DIR.mkdir(parents=True, exist_ok=True)
-            conf = CACHE_DIR / "cava.conf"
-            conf.write_text(CAVA_CONFIG)
-            self.proc.start(shutil.which("cava"), ["-p", str(conf)])
+            self._launch_cava()
         else:
             self.stop()
             self._bars = [0.0] * BARS

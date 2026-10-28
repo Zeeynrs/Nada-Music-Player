@@ -59,16 +59,21 @@ class Updater(QObject):
         self._notified_hash = ""
         self._dismissed_hash = ""
 
+        self._is_git_repo = (ROOT / ".git").exists()
         self._read_local_head()
 
         self._timer = QTimer(self)
         self._timer.setInterval(CHECK_INTERVAL_MS)
         self._timer.timeout.connect(lambda: self.check(True))
-        self._timer.start()
-
-        QTimer.singleShot(2500, lambda: self.check(True))
+        if self._is_git_repo:
+            self._timer.start()
+            QTimer.singleShot(2500, lambda: self.check(True))
 
     def _read_local_head(self):
+        if not self._is_git_repo:
+            self._current_hash = "paket sistem"
+            self._current_msg = "Dipasang lewat paket"
+            return
         try:
             self._current_hash = _git("rev-parse", "--short", "HEAD", timeout=3)
             self._current_msg = _git("log", "-1", "--format=%s", "HEAD", timeout=3)
@@ -138,6 +143,10 @@ class Updater(QObject):
     @Slot()
     @Slot(bool)
     def check(self, silent: bool = False):
+        if not self._is_git_repo:
+            if not silent:
+                self.toast.emit("Nada dipasang lewat paket sistem. Gunakan manajer paket atau ./install.sh untuk memperbarui.")
+            return
         if self._checking or self._updating:
             return
         self._checking = True
@@ -202,6 +211,9 @@ class Updater(QObject):
 
     @Slot()
     def applyUpdate(self):
+        if not self._is_git_repo:
+            self.toast.emit("Nada dipasang lewat paket sistem. Gunakan manajer paket atau ./install.sh untuk memperbarui.")
+            return
         if self._updating:
             return
         self._updating = True
@@ -237,7 +249,16 @@ class Updater(QObject):
             bin_dir = Path.home() / ".local" / "bin"
             if bin_dir.exists():
                 launcher = bin_dir / "nada"
-                launcher.write_text(f'#!/bin/sh\nexec python3 -I "{ROOT / "run.py"}" "$@"\n')
+                venv_py = ROOT / ".venv" / "bin" / "python3"
+                if venv_py.exists():
+                    py_cmd = f'"{venv_py}"'
+                else:
+                    py_cmd = "python3 -I"
+                launcher.write_text(
+                    '#!/bin/sh\n'
+                    'export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"\n'
+                    f'exec {py_cmd} "{ROOT / "run.py"}" "$@"\n'
+                )
                 launcher.chmod(0o755)
             icon_src = ROOT / "data" / "nada.svg"
             icon_dst = Path.home() / ".local" / "share" / "icons" / "hicolor" / "scalable" / "apps" / "nada.svg"

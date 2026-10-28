@@ -1,13 +1,52 @@
 """Runs librespot as the local Spotify Connect device that actually plays audio."""
 
+import os
 import shutil
+import subprocess
 from collections import deque
+from pathlib import Path
 
 from PySide6.QtCore import Property, QObject, QProcess, QTimer, Signal, Slot
 
 from .config import CACHE_DIR, LIBRESPOT_CACHE
 
 LOG_FILE = CACHE_DIR / "librespot.log"
+_BACKEND_CACHE: dict[str, str | None] = {}
+
+
+def _find_librespot() -> str | None:
+    exe = shutil.which("librespot")
+    if exe:
+        return exe
+    for candidate in (Path.home() / ".local" / "bin" / "librespot", Path.home() / ".cargo" / "bin" / "librespot"):
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    return None
+
+
+def _preferred_backend(exe: str) -> str | None:
+    if exe in _BACKEND_CACHE:
+        return _BACKEND_CACHE[exe]
+    backend = None
+    try:
+        res = subprocess.run([exe, "--backend", "?"], capture_output=True, text=True, timeout=3)
+        out = (res.stdout or "") + "\n" + (res.stderr or "")
+        if "pulseaudio" in out:
+            backend = "pulseaudio"
+    except Exception:
+        backend = "pulseaudio"
+    _BACKEND_CACHE[exe] = backend
+    return backend
+
+
+def _distro_install_hint() -> str:
+    if shutil.which("pacman"):
+        return "Pasang dulu: sudo pacman -S librespot"
+    if shutil.which("xbps-install"):
+        return "Pasang dulu: sudo xbps-install -S librespot"
+    if shutil.which("apk"):
+        return "Pasang dulu: sudo apk add librespot"
+    return "Pasang dulu lewat ./install.sh atau: cargo install librespot --locked"
 
 
 class Librespot(QObject):
@@ -37,7 +76,11 @@ class Librespot(QObject):
 
     @Property(bool, constant=True)
     def installed(self):
-        return shutil.which("librespot") is not None
+        return _find_librespot() is not None
+
+    @Property(str, constant=True)
+    def installHint(self):
+        return _distro_install_hint()
 
     @Property(str, notify=logChanged)
     def log(self):
@@ -50,7 +93,7 @@ class Librespot(QObject):
 
     @Slot()
     def start(self):
-        exe = shutil.which("librespot")
+        exe = _find_librespot()
         if not exe:
             self._set_status("missing")
             return
@@ -60,7 +103,11 @@ class Librespot(QObject):
         args = [
             "--name", self.settings["device_name"],
             "--device-type", "computer",
-            "--backend", "pulseaudio",  # PipeWire via pipewire-pulse
+        ]
+        backend = _preferred_backend(exe)
+        if backend:
+            args.extend(["--backend", backend])
+        args.extend([
             "--bitrate", str(self.settings["bitrate"]),
             "--cache", str(LIBRESPOT_CACHE),
             "--system-cache", str(LIBRESPOT_CACHE),
@@ -69,7 +116,7 @@ class Librespot(QObject):
             "--initial-volume", "80",
             "--volume-ctrl", "log",
             "--volume-range", str(self.settings["volume_range"]),
-        ]
+        ])
         if self.settings["normalize"]:
             args.append("--enable-volume-normalisation")
         self._stopping = False

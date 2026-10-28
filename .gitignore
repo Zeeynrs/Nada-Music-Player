@@ -1,2 +1,11 @@
 __pycache__/
 *.pyc
+.venv/
+venv/
+pkg/
+src/
+*.pkg.tar.*
+build/
+dist/
+*.egg-info/
+ref.png

@@ -23,8 +23,20 @@ from .worker import Async
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def _ensure_user_bins_in_path():
+    """Ensure ~/.local/bin and ~/.cargo/bin are in PATH when launched from a desktop entry."""
+    path_parts = os.environ.get("PATH", "").split(os.pathsep) if os.environ.get("PATH") else []
+    for extra in (Path.home() / ".local" / "bin", Path.home() / ".cargo" / "bin"):
+        s = str(extra)
+        if extra.is_dir() and s not in path_parts:
+            path_parts.insert(0, s)
+    os.environ["PATH"] = os.pathsep.join(path_parts)
+
+
 def main():
-    os.environ.setdefault("QT_QPA_PLATFORM", "wayland;xcb")
+    _ensure_user_bins_in_path()
+    if os.environ.get("WAYLAND_DISPLAY"):
+        os.environ.setdefault("QT_QPA_PLATFORM", "wayland;xcb")
     app = QGuiApplication(sys.argv)
     app.setApplicationName("Nada")
     app.setOrganizationName("nada")
@@ -100,7 +112,11 @@ def main():
     code = app.exec()
     del window, engine  # tear down QML before the Python objects it binds to
     if restarting:
-        os.execv(sys.executable, [sys.executable, "-I", str(ROOT / "run.py"), *sys.argv[1:]])
+        cmd = [sys.executable]
+        if getattr(sys.flags, "isolated", 0):
+            cmd.append("-I")
+        cmd.extend([str(ROOT / "run.py"), *sys.argv[1:]])
+        os.execv(sys.executable, cmd)
     sys.exit(code)
 
 

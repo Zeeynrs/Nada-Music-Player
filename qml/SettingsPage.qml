@@ -133,7 +133,7 @@ Item {
                 title: "Perangkat lokal (librespot)"
                 SettingRow {
                     label: "Status"
-                    hint: librespot.installed ? "" : "Pasang dulu: sudo pacman -S librespot"
+                    hint: librespot.installed ? "" : librespot.installHint
                     Rectangle {
                         implicitWidth: 10; implicitHeight: 10; radius: 5
                         color: librespot.status === "ready" ? "#7ee08f" : librespot.status === "error" || librespot.status === "missing" ? Theme.danger : "#ffd36e"
