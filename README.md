@@ -1,7 +1,7 @@
 # Nada
 
 Pemutar Spotify ringan untuk desktop Linux (Wayland/Hyprland & X11), terinspirasi dari
-[Swiftify](https://github.com/swiftify-org/swiftify). Ditulis dengan Python + Qt Quick,
+Spotify. Ditulis dengan Python + Qt Quick,
 memutar audio lewat [librespot](https://github.com/librespot-org/librespot).
 
 - Beranda, pencarian, Lagu Disukai, playlist, album, halaman artis, antrean
